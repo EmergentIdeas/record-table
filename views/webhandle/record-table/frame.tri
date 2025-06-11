@@ -1,0 +1,66 @@
+<div class="record-table-frame __displayClasses__">
+	<div class="actions">
+		<div class="global">
+			<!-- <button class="create" type="button">Create New</button>	 -->
+		</div>
+		<div class="options">
+			<button type="button" name="fieldOptions">Choose Fields</button>
+
+		</div>
+	</div>
+	<div class="search">
+
+		<div class="comparison-def">
+			<button class="show-all" type="button">Show All</button>
+			- or -
+			<label>
+				Field
+				<select name="searchField">
+					<option value="">-- choose field --</option>
+					__fieldOptions__
+				</select>
+
+			</label>
+			<label>
+				&nbsp;
+				<select name="matchesBecause">
+					<option value="contains">contains</option>
+					<option value="equals">equals</option>
+					<option value="gt">is greater than</option>
+					<option value="lt">is less than</option>
+				</select>
+
+			</label>
+
+			<label>
+				Value
+				<input name="search" type="text" />
+			</label>
+			<button type="button" class="do-search">Search</button>
+		</div>
+
+	</div>
+	<div class="filter">
+	</div>
+	<div class="columns">
+
+	</div>
+	<div class="row-work">
+		<div class="status">
+			<p>
+				Search for records or 
+				<button class="show-all" type="button">Show All</button>
+			</p>
+		</div>
+		<div class="row-options">
+			<button class="edit-row" type="button">Edit</button>
+			<button class="delete-rows" type="button">Delete</button>
+			
+		</div>
+	</div>
+	<div class="records">
+
+
+	</div>
+
+</div>

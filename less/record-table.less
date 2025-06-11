@@ -1,0 +1,127 @@
+.record-table-frame {
+	.records {
+		thead {
+			cursor: pointer;
+
+			th:not(.no-sort) {
+				cursor: pointer;
+			}
+
+			th:not(.no-sort):after {
+				content: '';
+				float: right;
+				margin-top: 7px;
+				border-width: 0;
+				border-style: solid;
+				visibility: hidden;
+				opacity: 0;
+				-ms-user-select: none;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				user-select: none;
+				border-bottom: solid 0px transparent;
+				border-left: solid 8px transparent;
+				border-right: solid 8px transparent;
+				border-top: solid 8px black;
+			}
+
+			th[aria-sort]:not(.no-sort):after {
+				visibility: visible;
+				opacity: 0.4;
+			}
+
+			th[aria-sort=forward]:not(.no-sort):after,
+			th[aria-sort=ascending]:not(.no-sort):after {
+				border-bottom: solid 0px black;
+				border-left: solid 8px transparent;
+				border-right: solid 8px transparent;
+				border-top: solid 8px black;
+			}
+
+			th[aria-sort=reverse]:not(.no-sort):after {
+				border-bottom: solid 8px black;
+				border-left: solid 8px transparent;
+				border-right: solid 8px transparent;
+				border-top: solid 0px transparent;
+			}
+
+			th:not(.no-sort):hover:after {
+				visibility: visible;
+				opacity: 1;
+			}
+		}
+		tbody {
+			tr.selected {
+				background-color: #f4f4f4;
+			}
+		}
+	}
+
+	.search {
+		display: grid;
+		grid-template-columns: 1fr auto ;
+		column-gap: 20px;
+
+		button {
+			align-self: end;
+			margin-bottom: 15px;
+		}
+		
+		input[type=text], select {
+			display: block;
+		}
+		
+		.comparison-def {
+			label {
+				display: inline-block;
+			}
+		}
+
+	}
+
+	.actions {
+		display: grid;
+		grid-template-columns: auto auto;
+
+		.options {
+			text-align: right;
+		}
+
+	}
+	
+	.row-work {
+		display: grid;
+		grid-template-columns: 1fr auto;
+	}
+	
+	.row-options {
+		button {
+			display: none
+		}
+		
+		&.edit {
+			.edit-row {
+				display: inline-block;
+			}
+		}
+		&.delete {
+			.delete-rows {
+				display: inline-block;
+			}
+		}
+	}
+
+	.records {
+		margin-top: 30px;
+
+		table {
+			border-spacing: 10px;
+			border-collapse: separate;
+
+		}
+	}
+}
+
+.record-table-frame.ei-styling {
+
+}
