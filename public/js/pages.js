@@ -13,6 +13,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _client_lib_record_table_mjs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../client-lib/record-table.mjs */ "./client-lib/record-table.mjs");
 /* harmony import */ var _format_price_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./format-price.mjs */ "./client-js/format-price.mjs");
 /* harmony import */ var _dankolz_in_memory_data_service_lib_in_memory_data_service_sift_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @dankolz/in-memory-data-service/lib/in-memory-data-service-sift.mjs */ "./node_modules/@dankolz/in-memory-data-service/lib/in-memory-data-service-sift.mjs");
+/* harmony import */ var _dankolz_data_service_server_client_lib_remote_data_service_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @dankolz/data-service-server/client-lib/remote-data-service.mjs */ "./node_modules/@dankolz/data-service-server/client-lib/remote-data-service.mjs");
+
+
 
 
 
@@ -20,16 +23,21 @@ __webpack_require__.r(__webpack_exports__);
 async function setupDynamicProductsList() {
 	let container = document.querySelector('#dynamic-products-list')
 	if(container) {
-		let data = (await (await fetch('/data1')).text())
-		let objs = data.split('\n').filter(line => !!line).map(line => JSON.parse(line))
-		let dataService = new _dankolz_in_memory_data_service_lib_in_memory_data_service_sift_mjs__WEBPACK_IMPORTED_MODULE_2__["default"]({
-			collections: {
-				default: objs
-			}
+		// let data = (await (await fetch('/data1')).text())
+		// let objs = data.split('\n').filter(line => !!line).map(line => JSON.parse(line))
+		// let dataService = new InMemoryDataService({
+		// 	collections: {
+		// 		default: objs
+		// 	}
+		// })
+
+		let data2 = new _dankolz_data_service_server_client_lib_remote_data_service_mjs__WEBPACK_IMPORTED_MODULE_3__["default"]({
+			urlPrefix: '/data2'
 		})
 		
 		let recordTable = new _client_lib_record_table_mjs__WEBPACK_IMPORTED_MODULE_0__["default"]({
-			dataService: dataService
+			// dataService: dataService
+			dataService: data2
 			, chosenFields: ['title', 'sku', 'upc']
 			, editUrlCreator: (row) => {
 				return `/products/${(row.getAttribute('data-_id') || row.getAttribute('data-id')).toString()}/edit`
@@ -221,6 +229,7 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 			, 'click [name="fieldOptions"]': 'showFieldOptions'
 			, 'keyup .search input[name=search]': 'doSearchValueChange'
 			, 'click .download-csv': 'doDownloadObjectsCsv'
+			, 'click .download-json': 'doDownloadObjectsJson'
 			, 'click .download-table-csv': 'doDownloadTableCsv'
 			, 'click tbody tr': 'selectRow'
 			, 'click .row-options .edit-row': 'editRow'
@@ -229,9 +238,11 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 	}
 
 	_generateDownloadButtons() {
-		return `
+		return `<div class="data-download-buttons">
 			<button class="download-table-csv" type="button">Download Table CSV</button>	
 			<button class="download-csv" type="button">Download Objects CSV</button>	
+			<button class="download-json" type="button">Download Objects JSON</button>	
+		</div>
 		`
 	}
 
@@ -257,6 +268,16 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 
 	async deleteRows(evt, selected) {
 		evt.preventDefault()
+
+		let dialog = new _webhandle_form_answer_dialog__WEBPACK_IMPORTED_MODULE_4__["default"]({
+			title: 'Delete?'
+			, body: `Are you sure you'd like to delete?`
+			, data: {}
+		})
+		let data = await dialog.open()
+		if (!data) {
+			return
+		}
 
 		let rows = this.getSelectedRows()
 		for (let row of rows) {
@@ -389,6 +410,15 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 		}
 		row += `</tr>`
 		return row
+	}
+
+	async doDownloadObjectsJson(evt, selected) {
+		evt.preventDefault()
+		if (!this.lastObjs) {
+			return
+		}
+		let lines = this.lastObjs.map(obj => JSON.stringify(obj))
+		this.downloadData(lines.join('\n'), "object-data.jsonl")
 	}
 
 	async doDownloadObjectsCsv(evt, selected) {
@@ -604,6 +634,34 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 	}
 
 }
+
+/***/ }),
+
+/***/ "./node_modules/@dankolz/abstract-data-service/abstract-data-service-browser.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/@dankolz/abstract-data-service/abstract-data-service-browser.js ***!
+  \**************************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+const DataService = __webpack_require__(/*! ./abstract-data-service */ "./node_modules/@dankolz/abstract-data-service/abstract-data-service.js")
+
+class DataServiceBrowser extends DataService {
+	/**
+	 * Generates storage system independent random ids
+	 * @returns a base64 string, 256 bits of randomness
+	 */
+	generateId() {
+		let array = new Uint8Array(32)
+		window.crypto.getRandomValues(array)
+		let value = btoa(array)
+		value = value.replace(/\//g, "_").replace(/\+/g, "-").replace(/=+$/, "")
+		return value
+	}
+
+}
+
+module.exports = DataServiceBrowser
+
 
 /***/ }),
 
@@ -899,6 +957,237 @@ class DataService {
 }
 
 module.exports = DataService
+
+/***/ }),
+
+/***/ "./node_modules/@dankolz/data-service-server/client-lib/remote-data-service.mjs":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/@dankolz/data-service-server/client-lib/remote-data-service.mjs ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ RemoteDataService)
+/* harmony export */ });
+/* harmony import */ var _dankolz_abstract_data_service__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @dankolz/abstract-data-service */ "./node_modules/@dankolz/abstract-data-service/abstract-data-service-browser.js");
+/* harmony import */ var _utils_replace_regexp_mjs__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils/replace-regexp.mjs */ "./node_modules/@dankolz/data-service-server/client-lib/utils/replace-regexp.mjs");
+/* harmony import */ var _utils_presend_transformer_mjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils/presend-transformer.mjs */ "./node_modules/@dankolz/data-service-server/client-lib/utils/presend-transformer.mjs");
+/* harmony import */ var _utils_postreceive_transformer_mjs__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./utils/postreceive-transformer.mjs */ "./node_modules/@dankolz/data-service-server/client-lib/utils/postreceive-transformer.mjs");
+
+
+
+
+
+class RemoteDataService extends _dankolz_abstract_data_service__WEBPACK_IMPORTED_MODULE_0__ {
+	constructor(options) {
+		super(options)
+		this.urlPrefix = options.urlPrefix
+		if(!options.collections) {
+			this.collections = {
+				default: {
+					collectionName: 'default'
+				}
+			}
+		}
+		this.closeConnection = options.closeConnection || false
+		this.cacheValue = options.cacheValue 
+		this.authToken = options.authToken
+		this.presaveTransformer = options.presaveTransformer || _utils_presend_transformer_mjs__WEBPACK_IMPORTED_MODULE_2__["default"]
+		this.postfetchTransformer = options.postfetchTransformer || _utils_postreceive_transformer_mjs__WEBPACK_IMPORTED_MODULE_3__["default"]
+	}
+	
+	/**
+	 * Adds headers to the request for caching and connection
+	 * @param {Request} request 
+	 */
+	addExtraHeaders(request) {
+		if(this.closeConnection) {
+			request.headers['Connection'] = 'close'
+		}
+		if(this.cacheValue) {
+			request.headers['cache'] = this.cacheValue
+		}
+		
+		if(this.authToken) {
+			request.headers['Authorization'] = 'Bearer ' + this.authToken
+		}
+
+	}
+
+	/**
+	 * The internal implementation of saving objects, either insert or update. 
+	 * @param {object} collection Could be anyting. An array, a mongo collection, even just a string to 
+	 * identify what underlying datastore to use
+	 * @param {object} focus An object to save
+	 * @returns a promise which resolves to the result of the save, an array of the [result, change-type(update,create), native-result].
+	 */
+	async _doInternalSave(collection, focus) {
+		
+		let records = [focus]
+		records = await this.presaveTransformer(records)
+		
+		let request = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ records: records})
+			, mode: 'cors'
+		}
+		this.addExtraHeaders(request)
+
+		let response = await fetch(this.urlPrefix, request)
+		let result = await response.json()
+		return result[0]
+	}
+
+	/**
+	 * The internal implementation of removing objects based on a query.
+	 * @param {object} collection Could be anyting. An array, a mongo collection, even just a string to 
+	 * identify what underlying datastore to use
+	 * @param {object|array} query An object in the mongodb query style, or an array of those objects
+	 * @returns a promise which resolves to the result of the delete, generally an internal result object
+	 */
+	async _doInternalRemove(collection, query) {
+		query = (0,_utils_replace_regexp_mjs__WEBPACK_IMPORTED_MODULE_1__["default"])(query)
+		let request = {
+			method: "DELETE",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ query: query })
+			, mode: 'cors'
+		}
+		this.addExtraHeaders(request)
+
+		let response = await fetch(this.urlPrefix, request)
+		let result = await response.json()
+		return result
+	}
+
+	/**
+	 * The internal implementation of fetching objects
+	 * @param {object} collection Could be anyting. An array, a mongo collection, even just a string to 
+	 * identify what underlying datastore to use
+	 * @param {object|array} query An object in the mongodb query style, or an array of those objects
+	 * @returns a promise which resolves to the result of the fetch, generally an array of result objects.
+	 */
+	async _doInternalFetch(collection, query) {
+		query = (0,_utils_replace_regexp_mjs__WEBPACK_IMPORTED_MODULE_1__["default"])(query)
+		let request = {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({ query: query })
+			, mode: 'cors'
+		}
+		this.addExtraHeaders(request)
+
+		let response = await fetch(this.urlPrefix + '/fetch', request)
+		let result = await response.json()
+		if(!Array.isArray(result)) {
+			result = [result]
+		}
+		result = await this.postfetchTransformer(result)
+		return result
+	}
+
+	/**
+	 * Creates an object to query the db by an object's ID. We're not going to change anything though
+	 * and let that all happen on the receiving side.
+	 * @param {*} id 
+	 * @returns 
+	 */
+	createIdQuery(id) {
+		return id
+	}
+}
+
+/***/ }),
+
+/***/ "./node_modules/@dankolz/data-service-server/client-lib/utils/postreceive-transformer.mjs":
+/*!************************************************************************************************!*\
+  !*** ./node_modules/@dankolz/data-service-server/client-lib/utils/postreceive-transformer.mjs ***!
+  \************************************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ postReceiveTransformer)
+/* harmony export */ });
+async function postReceiveTransformer(records) {
+	return records
+}
+
+/***/ }),
+
+/***/ "./node_modules/@dankolz/data-service-server/client-lib/utils/presend-transformer.mjs":
+/*!********************************************************************************************!*\
+  !*** ./node_modules/@dankolz/data-service-server/client-lib/utils/presend-transformer.mjs ***!
+  \********************************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ presendTransformer)
+/* harmony export */ });
+async function presendTransformer(records) {
+	return records
+}
+
+/***/ }),
+
+/***/ "./node_modules/@dankolz/data-service-server/client-lib/utils/replace-regexp.mjs":
+/*!***************************************************************************************!*\
+  !*** ./node_modules/@dankolz/data-service-server/client-lib/utils/replace-regexp.mjs ***!
+  \***************************************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ replaceRegexp)
+/* harmony export */ });
+
+function isRegExp(value) {
+	if(!value) {
+		return false
+	}
+	return value instanceof RegExp
+}
+
+function transform(regexp) {
+	let result = {
+		$regex: regexp.source, 
+	}
+	if(regexp.flags) {
+		result.$options = regexp.flags
+	}
+	return result
+}
+
+function replaceRegexp(focus) {
+	if(!focus) {
+		return focus
+	}
+	
+	if(isRegExp(focus)) {
+		return transform(focus)
+	}
+	
+	if(typeof focus === 'object') {
+		for(let key of Object.keys(focus)) {
+			try {
+				focus[key] = replaceRegexp(focus[key])	
+			}
+			// In case we raise an error setting a member
+			catch(e) {}
+		}
+	}
+
+	return focus
+}
 
 /***/ }),
 
@@ -5919,7 +6208,7 @@ module.exports = {
   \************************************************/
 /***/ ((module, __unused_webpack_exports, __webpack_require__) => {
 
-var tri = __webpack_require__(/*! tripartite */ "./node_modules/tripartite/tripartite.js"); var t = "<div class=\"record-table-frame __displayClasses__\">\n\t<div class=\"actions\">\n\t\t<div class=\"global\">\n\t\t\t<!-- <button class=\"create\" type=\"button\">Create New<\/button>\t -->\n\t\t<\/div>\n\t\t<div class=\"options\">\n\t\t\t<button type=\"button\" name=\"fieldOptions\">Choose Fields<\/button>\n\n\t\t<\/div>\n\t<\/div>\n\t<div class=\"search\">\n\n\t\t<div class=\"comparison-def\">\n\t\t\t<button class=\"show-all\" type=\"button\">Show All<\/button>\n\t\t\t- or -\n\t\t\t<label>\n\t\t\t\tField\n\t\t\t\t<select name=\"searchField\">\n\t\t\t\t\t<option value=\"\">-- choose field --<\/option>\n\t\t\t\t\t__fieldOptions__\n\t\t\t\t<\/select>\n\n\t\t\t<\/label>\n\t\t\t<label>\n\t\t\t\t&nbsp;\n\t\t\t\t<select name=\"matchesBecause\">\n\t\t\t\t\t<option value=\"contains\">contains<\/option>\n\t\t\t\t\t<option value=\"equals\">equals<\/option>\n\t\t\t\t\t<option value=\"gt\">is greater than<\/option>\n\t\t\t\t\t<option value=\"lt\">is less than<\/option>\n\t\t\t\t<\/select>\n\n\t\t\t<\/label>\n\n\t\t\t<label>\n\t\t\t\tValue\n\t\t\t\t<input name=\"search\" type=\"text\" \/>\n\t\t\t<\/label>\n\t\t\t<button type=\"button\" class=\"do-search\">Search<\/button>\n\t\t<\/div>\n\n\t<\/div>\n\t<div class=\"filter\">\n\t<\/div>\n\t<div class=\"columns\">\n\n\t<\/div>\n\t<div class=\"row-work\">\n\t\t<div class=\"status\">\n\t\t\t<p>\n\t\t\t\tSearch for records or \n\t\t\t\t<button class=\"show-all\" type=\"button\">Show All<\/button>\n\t\t\t<\/p>\n\t\t<\/div>\n\t\t<div class=\"row-options\">\n\t\t\t<button class=\"edit-row\" type=\"button\">Edit<\/button>\n\t\t\t<button class=\"delete-rows\" type=\"button\">Delete<\/button>\n\t\t\t\n\t\t<\/div>\n\t<\/div>\n\t<div class=\"records\">\n\n\n\t<\/div>\n\n<\/div>"; 
+var tri = __webpack_require__(/*! tripartite */ "./node_modules/tripartite/tripartite.js"); var t = "<div class=\"record-table-frame __displayClasses__\">\n\t<div class=\"actions\">\n\t\t<div class=\"global\">\n\t\t\t<!-- <button class=\"create\" type=\"button\">Create New<\/button>\t -->\n\t\t<\/div>\n\t\t<div class=\"options\">\n\t\t\t<button type=\"button\" name=\"fieldOptions\">Choose Fields<\/button>\n\n\t\t<\/div>\n\t<\/div>\n\t<div class=\"search\">\n\n\t\t<div class=\"comparison-def\">\n\t\t\t<button class=\"show-all\" type=\"button\">Show All<\/button>\n\t\t\t- or -\n\t\t\t<label>\n\t\t\t\tField\n\t\t\t\t<select name=\"searchField\">\n\t\t\t\t\t<option value=\"\">-- choose field --<\/option>\n\t\t\t\t\t__fieldOptions__\n\t\t\t\t<\/select>\n\n\t\t\t<\/label>\n\t\t\t<label>\n\t\t\t\t&nbsp;\n\t\t\t\t<select name=\"matchesBecause\">\n\t\t\t\t\t<option value=\"contains\">contains<\/option>\n\t\t\t\t\t<!-- <option value=\"equals\">equals<\/option>\n\t\t\t\t\t<option value=\"gt\">is greater than<\/option>\n\t\t\t\t\t<option value=\"lt\">is less than<\/option> -->\n\t\t\t\t<\/select>\n\n\t\t\t<\/label>\n\n\t\t\t<label>\n\t\t\t\tValue\n\t\t\t\t<input name=\"search\" type=\"text\" \/>\n\t\t\t<\/label>\n\t\t\t<button type=\"button\" class=\"do-search\">Search<\/button>\n\t\t<\/div>\n\n\t<\/div>\n\t<div class=\"filter\">\n\t<\/div>\n\t<div class=\"columns\">\n\n\t<\/div>\n\t<div class=\"row-work\">\n\t\t<div class=\"status\">\n\t\t\t<p>\n\t\t\t\tSearch for records or \n\t\t\t\t<button class=\"show-all\" type=\"button\">Show All<\/button>\n\t\t\t<\/p>\n\t\t<\/div>\n\t\t<div class=\"row-options\">\n\t\t\t<button class=\"edit-row\" type=\"button\">Edit<\/button>\n\t\t\t<button class=\"delete-rows\" type=\"button\">Delete<\/button>\n\t\t\t\n\t\t<\/div>\n\t<\/div>\n\t<div class=\"records\">\n\n\n\t<\/div>\n\n<\/div>"; 
 module.exports = tri.addTemplate("views/webhandle/record-table/frame", t); 
 
 /***/ })

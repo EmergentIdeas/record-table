@@ -42,6 +42,7 @@ export default class RecordTable extends View {
 			, 'click [name="fieldOptions"]': 'showFieldOptions'
 			, 'keyup .search input[name=search]': 'doSearchValueChange'
 			, 'click .download-csv': 'doDownloadObjectsCsv'
+			, 'click .download-json': 'doDownloadObjectsJson'
 			, 'click .download-table-csv': 'doDownloadTableCsv'
 			, 'click tbody tr': 'selectRow'
 			, 'click .row-options .edit-row': 'editRow'
@@ -50,9 +51,11 @@ export default class RecordTable extends View {
 	}
 
 	_generateDownloadButtons() {
-		return `
+		return `<div class="data-download-buttons">
 			<button class="download-table-csv" type="button">Download Table CSV</button>	
 			<button class="download-csv" type="button">Download Objects CSV</button>	
+			<button class="download-json" type="button">Download Objects JSON</button>	
+		</div>
 		`
 	}
 
@@ -78,6 +81,16 @@ export default class RecordTable extends View {
 
 	async deleteRows(evt, selected) {
 		evt.preventDefault()
+
+		let dialog = new FormAnswerDialog({
+			title: 'Delete?'
+			, body: `Are you sure you'd like to delete?`
+			, data: {}
+		})
+		let data = await dialog.open()
+		if (!data) {
+			return
+		}
 
 		let rows = this.getSelectedRows()
 		for (let row of rows) {
@@ -210,6 +223,15 @@ export default class RecordTable extends View {
 		}
 		row += `</tr>`
 		return row
+	}
+
+	async doDownloadObjectsJson(evt, selected) {
+		evt.preventDefault()
+		if (!this.lastObjs) {
+			return
+		}
+		let lines = this.lastObjs.map(obj => JSON.stringify(obj))
+		this.downloadData(lines.join('\n'), "object-data.jsonl")
 	}
 
 	async doDownloadObjectsCsv(evt, selected) {

@@ -1,5 +1,5 @@
 {
-	"name": "record-table",
+	"name": "@webhandle/record-table",
 	"version": "1.0.0",
 	"main": "client-lib/record-table.mjs",
 	"scripts": {
@@ -9,7 +9,7 @@
 		"client-js-build": "npx webpack --config pages.webpack.cjs",
 		"dev-less-watch": "onchange 'less/**/*.less' -- npm run less-build",
 		"dev-client-js-watch": "npx webpack --watch --config pages.webpack.cjs",
-		"dev-server-js-watch": "onchange 'server-js/**/*js' -- pm2 restart $npm_package_name-web",
+		"dev-server-js-watch": "onchange 'server-js/**/*js' -- pm2 restart record-table-web",
 		"start": "node ./web-server.js",
 		"testDebug": "node --inspect-brk node_modules/mocha/bin/mocha",
 		"bg": "parallelshell 'npm run dev-less-watch' 'npm run dev-client-js-watch'",
@@ -40,6 +40,7 @@
 		"uglify-js": "^3.17.4",
 		"webhandle": "^1.0.32",
 		"webhandle-js-widget-setup": "^1.0.8",
+		"@dankolz/data-service-server": "^1.0.1",
 		"webpack-cli": "^5.1.4"
 	},
 	"dependencies": {
@@ -48,7 +49,8 @@
 		"@webhandle/drag-sortable-list": "^1.0.2",
 		"@webhandle/form-answer-dialog": "^1.0.1",
 		"@webhandle/objs-to-csv-string": "^1.0.1",
-		"objs-to-sql": "^1.0.1"
+		"objs-to-sql": "^1.0.1",
+		"tripartite": "^1.1.1"
 	},
 	"browserify": {
 		"transform": [
@@ -56,9 +58,11 @@
 		]
 	},
 	"files": [
-		"/client-lib"
-		, "/less/record-table.less"
-		, "/views/webhandle"
+		"/client-lib",
+		"/server-lib",
+		"/less/record-table.less",
+		"/views/webhandle",
+		"README.md"
 	],
 	"type": "module"
 }

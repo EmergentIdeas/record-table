@@ -479,8 +479,14 @@ body {
   visibility: visible;
   opacity: 1;
 }
-.record-table-frame .records tbody tr.selected {
+.record-table-frame .records tbody tr.selected td {
   background-color: #f4f4f4;
+}
+.record-table-frame .records tbody td {
+  padding: 5px;
+}
+.record-table-frame .records td {
+  background-color: white;
 }
 .record-table-frame .search {
   display: grid;
@@ -522,7 +528,8 @@ body {
   margin-top: 30px;
 }
 .record-table-frame .records table {
-  border-spacing: 10px;
+  border-spacing: 1px;
   border-collapse: separate;
+  background: #f4f4f4;
 }
 /*# sourceMappingURL=pages.css.map */

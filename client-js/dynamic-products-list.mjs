@@ -2,19 +2,26 @@ import RecordTable from '../client-lib/record-table.mjs'
 import formatPrice from './format-price.mjs'
 import InMemoryDataService from '@dankolz/in-memory-data-service/lib/in-memory-data-service-sift.mjs'
 
+import RemoteDataService from '@dankolz/data-service-server/client-lib/remote-data-service.mjs'
+
 export default async function setupDynamicProductsList() {
 	let container = document.querySelector('#dynamic-products-list')
 	if(container) {
-		let data = (await (await fetch('/data1')).text())
-		let objs = data.split('\n').filter(line => !!line).map(line => JSON.parse(line))
-		let dataService = new InMemoryDataService({
-			collections: {
-				default: objs
-			}
+		// let data = (await (await fetch('/data1')).text())
+		// let objs = data.split('\n').filter(line => !!line).map(line => JSON.parse(line))
+		// let dataService = new InMemoryDataService({
+		// 	collections: {
+		// 		default: objs
+		// 	}
+		// })
+
+		let data2 = new RemoteDataService({
+			urlPrefix: '/data2'
 		})
 		
 		let recordTable = new RecordTable({
-			dataService: dataService
+			// dataService: dataService
+			dataService: data2
 			, chosenFields: ['title', 'sku', 'upc']
 			, editUrlCreator: (row) => {
 				return `/products/${(row.getAttribute('data-_id') || row.getAttribute('data-id')).toString()}/edit`

@@ -25,9 +25,9 @@
 				&nbsp;
 				<select name="matchesBecause">
 					<option value="contains">contains</option>
-					<option value="equals">equals</option>
+					<!-- <option value="equals">equals</option>
 					<option value="gt">is greater than</option>
-					<option value="lt">is less than</option>
+					<option value="lt">is less than</option> -->
 				</select>
 
 			</label>
