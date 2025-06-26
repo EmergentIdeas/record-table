@@ -49,6 +49,19 @@ export default async function setupDynamicProductsList() {
 					, type: 'number'
 				}
 				, {
+					field: 'dne'
+					, label: 'Does Not Exist'
+					, type: 'number'
+				}
+				, {
+					field: 'madeup'
+					, label: 'Made up'
+					, type: 'number'
+					, retriever: (fieldName, obj) => {
+						return 'made'
+					}
+				}
+				, {
 					field: 'productCategory'
 					, label: 'Category'
 					, formatter: (value, fieldName, obj) => {

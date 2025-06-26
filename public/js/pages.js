@@ -65,6 +65,19 @@ async function setupDynamicProductsList() {
 					, type: 'number'
 				}
 				, {
+					field: 'dne'
+					, label: 'Does Not Exist'
+					, type: 'number'
+				}
+				, {
+					field: 'madeup'
+					, label: 'Made up'
+					, type: 'number'
+					, retriever: (fieldName, obj) => {
+						return 'made'
+					}
+				}
+				, {
 					field: 'productCategory'
 					, label: 'Category'
 					, formatter: (value, fieldName, obj) => {
@@ -377,7 +390,17 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 	}
 
 	defaultValueFormatter(value, fieldName, obj) {
+		if(value === undefined) {
+			return ''
+		}
+		if(value === null) {
+			return ''
+		}
 		return value
+	}
+
+	defaultValueRetriever(fieldName, obj) {
+		return obj[fieldName]
 	}
 
 	_processingRecordSelection() {
@@ -393,7 +416,12 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 			if (desc && desc.formatter) {
 				formatter = desc.formatter
 			}
-			rendered[field] = formatter(obj[field], field, obj)
+			let retriever = this.defaultValueRetriever
+			if(desc && desc.retriever) {
+				retriever = desc.retriever
+			}
+			let value = retriever(field, obj)
+			rendered[field] = formatter(value, field, obj)
 		}
 		return rendered
 	}
@@ -406,7 +434,12 @@ class RecordTable extends _webhandle_backbone_view__WEBPACK_IMPORTED_MODULE_0__.
 			if (desc && desc.formatter) {
 				formatter = desc.formatter
 			}
-			row += `<td>${formatter(obj[field], field, obj)}</td>`
+			let retriever = this.defaultValueRetriever
+			if(desc && desc.retriever) {
+				retriever = desc.retriever
+			}
+			let value = retriever(field, obj)
+			row += `<td>${formatter(value, field, obj)}</td>`
 		}
 		row += `</tr>`
 		return row

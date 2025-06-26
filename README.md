@@ -35,6 +35,9 @@ let recordTable = new RecordTable({
 			, formatter: (value, fieldName, obj) => {
 				return `<a href="/products/${obj.id || obj._id}/edit">${value}</a>`
 			}
+			, retriever: (fieldName, obj) => {
+				return 'something'
+			}
 		}
 		, {
 			field: 'price'
@@ -51,7 +54,7 @@ let recordTable = new RecordTable({
 			, type: 'number'
 		}
 	]
-}
+})
 
 let container = document.querySelector('#dynamic-products-list')
 recordTable.appendTo(container)

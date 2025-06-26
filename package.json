@@ -1,6 +1,6 @@
 {
 	"name": "@webhandle/record-table",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"main": "client-lib/record-table.mjs",
 	"scripts": {
 		"test": "node_modules/mocha/bin/mocha",

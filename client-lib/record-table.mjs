@@ -190,7 +190,17 @@ export default class RecordTable extends View {
 	}
 
 	defaultValueFormatter(value, fieldName, obj) {
+		if(value === undefined) {
+			return ''
+		}
+		if(value === null) {
+			return ''
+		}
 		return value
+	}
+
+	defaultValueRetriever(fieldName, obj) {
+		return obj[fieldName]
 	}
 
 	_processingRecordSelection() {
@@ -206,7 +216,12 @@ export default class RecordTable extends View {
 			if (desc && desc.formatter) {
 				formatter = desc.formatter
 			}
-			rendered[field] = formatter(obj[field], field, obj)
+			let retriever = this.defaultValueRetriever
+			if(desc && desc.retriever) {
+				retriever = desc.retriever
+			}
+			let value = retriever(field, obj)
+			rendered[field] = formatter(value, field, obj)
 		}
 		return rendered
 	}
@@ -219,7 +234,12 @@ export default class RecordTable extends View {
 			if (desc && desc.formatter) {
 				formatter = desc.formatter
 			}
-			row += `<td>${formatter(obj[field], field, obj)}</td>`
+			let retriever = this.defaultValueRetriever
+			if(desc && desc.retriever) {
+				retriever = desc.retriever
+			}
+			let value = retriever(field, obj)
+			row += `<td>${formatter(value, field, obj)}</td>`
 		}
 		row += `</tr>`
 		return row
